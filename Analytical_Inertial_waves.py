@@ -1,5 +1,7 @@
 """
-@author: alexandrenuyt
+
+@author: Alexandre Nuyt
+
 """
 
 import matplotlib.pyplot as plt
