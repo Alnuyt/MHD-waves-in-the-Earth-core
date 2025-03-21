@@ -1,5 +1,7 @@
 """
-@author: alexandrenuyt
+
+@author: Alexandre Nuyt
+
 """
 
 import numpy as np
