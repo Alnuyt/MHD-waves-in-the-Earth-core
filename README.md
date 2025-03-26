@@ -22,7 +22,7 @@ pour tout mode m et k, en géométrie cylindrique.
 ## Description des codes
 Lors de l'étude, 3 codes principaux ont été écrits :
 - [Analytical_Inertial_waves.py](Analytical_Inertial_waves.py) : Résoud numériquement l'équation transcendante (1.56) qui donne les solutions analytiques des ondes inertielles se propageant dans fluide non-conducteur en rotation pour une géométrie cylindrique. 
-- [Helmoltz_cylindrical.py](Helmoltz_cylindrical.py) : Résoud l'équation de Helmoltz cylindrique, par la méthode des diffénreces finies, afin de de s'assurer du fonctionnement de la méthode numérique utilisée pour réaliser les solveurs Hydro et MHD des ondes inertielles.
+- [Helmoltz_cylindrical.py](Helmoltz_cylindrical.py) : Résoud l'équation de Helmoltz cylindrique, par la méthode des différences finies, afin de s'assurer du fonctionnement de la méthode numérique utilisée pour réaliser les solveurs Hydro et MHD des ondes inertielles.
 - [Toroidal_Poloidal_Inertial_waves.py](Toroidal_Poloidal_Inertial_waves.py): Est la base d'un solveur Hydro + MHD des ondes inertielles, pour tout mode m et k, en géométrie cylindrique.
 ## Conclusion
 Ce travail explore la résolution des ondes magnéto-Coriolis en géométrie cylindrique en s'appuyant sur des bases théoriques en hydrodynamique et magnétohydrodynamique. Un algorithme numérique a été développé pour traiter ce problème, bien que les résultats actuels nécessitent encore des améliorations. En optimisant la discrétisation, cet outil pourra devenir un véritable atout pour l'étude des phénomènes géophysiques et astrophysiques.
