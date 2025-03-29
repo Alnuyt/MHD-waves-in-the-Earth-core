@@ -1,14 +1,5 @@
 # Modèle simplifié d’ondes magnétohydrodynamiques dans le noyau terrestre
-Dans ce mémoire, les équations linéaires de l’hydrodynamique et de la magnéto-
-hydrodynamique sont développées pour un fluide conducteur en rotation uniforme
-imprégné d’un champ magnétique constant. Une décomposition toroïdale-poloïdale
-est apppliquée aux champs solénoïdaux, ce qui nous permet, d’obtenir un système
-résoluble numériquement. La résolution numérique de ces équations via un solveur
-d’ondes inertielles, développé dans le cadre de ce mémoire, permet de calculer tous
-les modes d’oscillations de ces ondes pour le cas hydrodynamique. La base d’un
-tel solveur a été construite durant cette étude, des améliorations mèneront vers un
-véritable calculateur d’ondes magnéto-Coriolis applicable à la géophysique et l’as-
-trophysique.
+Dans ce mémoire, les équations linéaires de l’hydrodynamique et de la magnétohydrodynamique sont développées pour un fluide conducteur en rotation uniforme imprégné d’un champ magnétique constant. Une décomposition toroïdale-poloïdale est apppliquée aux champs solénoïdaux, ce qui nous permet, d’obtenir un système résoluble numériquement. La résolution numérique de ces équations via un solveur d’ondes inertielles, développé dans le cadre de ce mémoire, permet de calculer tous les modes d’oscillations de ces ondes pour le cas hydrodynamique. La base d’un tel solveur a été construite durant cette étude, des améliorations mèneront vers un véritable calculateur d’ondes magnéto-Coriolis applicable à la géophysique et l’astrophysique.
 ## Auteur
 Alexandre Nuyt - Université Catholique de Louvain, Faculté des sciences, Ecole de physique
 ## Objectifs
