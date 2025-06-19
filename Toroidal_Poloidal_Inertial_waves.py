@@ -9,6 +9,30 @@ from scipy import linalg
 import matplotlib.pyplot as plt
 import time
 
+
+def chebyshev_diff_matrices(N, a, b):
+    """Return Chebyshev differentiation matrices and grid mapped to [a, b]."""
+    if N < 2:
+        raise ValueError("N must be at least 2 for spectral discretisation")
+    N_cheb = N - 1
+    n = np.arange(N_cheb + 1)
+    x = np.cos(np.pi * n / N_cheb)
+    c = np.ones(N_cheb + 1)
+    c[0] = 2
+    c[-1] = 2
+    c = c * (-1) ** n
+    X = np.tile(x, (N_cheb + 1, 1))
+    dX = X - X.T
+    D = (c[:, None] / c[None, :]) / (dX + np.eye(N_cheb + 1))
+    D = D - np.diag(np.sum(D, axis=1))
+    # map grid to [a, b]
+    s = 0.5 * (b - a) * (x + 1) + a
+    D = 2.0 / (b - a) * D
+    D2 = D @ D
+    # sort grid in ascending order for convenience
+    idx = np.argsort(s)
+    return s[idx], D[idx][:, idx], D2[idx][:, idx]
+
 class Inertial_Waves_Calculator:
     def __init__(self, n=1000, s_min=0, s_max=2, Omega=1):
         self.n = n
@@ -16,7 +40,9 @@ class Inertial_Waves_Calculator:
         self.s_max = s_max
         self.Omega = Omega
         self.h = (s_max - s_min) / n
-        self.s = np.linspace(s_min, s_max, 2*n)
+        self.s_grid, self.D1, self.D2 = chebyshev_diff_matrices(n, s_min, s_max)
+        # store full grid (toroidal + poloidal) for compatibility with previous
+        self.s = np.concatenate([self.s_grid, self.s_grid])
         self.k = None
         self.m = None
         self.A = None
@@ -33,31 +59,17 @@ class Inertial_Waves_Calculator:
     def matrix_A1(self):
         return np.zeros((self.n, self.n))
     def matrix_A2(self):
-        A2 = np.zeros((self.n, self.n), dtype=complex)
-        for i in range(self.n):
-            if i == self.n - 1:
-                A2[i, i] = 1
-            else:
-                A2[i, i] = (-2 * self.Omega * self.k * (self.m ** 2) * 
-                            self.s[i] + (self.s[i] ** 2) * (self.k ** 3)) * 1j
+        diag = (-2 * self.Omega * self.k * (self.m ** 2) * self.s_grid +
+                (self.s_grid ** 2) * (self.k ** 3)) * 1j
+        A2 = np.diag(diag)
+        A2[-1, -1] = 1
         return A2
     def matrix_A3(self):
-        A3 = np.zeros((self.n, self.n))
-        for i in range(self.n):
-            A3[i, i] = self.s[i] ** 2
+        A3 = np.diag(self.s_grid ** 2)
         return (2 * self.Omega * (self.k ** 2)) * A3
     def matrix_A4(self):
-        A4 = np.zeros((self.n, self.n))
-        for i in range(self.n):
-            if i == 0:
-                A4[i, i] = -(1 + (self.s[i]/(2 * self.h)))
-                A4[i, i + 1] = self.s[i] / (2 * self.h)
-            elif i == self.n - 1:
-                A4[i, i] = 0
-            else:
-                A4[i, i - 1] = -self.s[i] / (2 * self.h)
-                A4[i, i] = -1
-                A4[i, i + 1] = self.s[i] / (2 * self.h)
+        A4 = -np.eye(self.n) + np.diag(self.s_grid) @ self.D1
+        A4[-1, :] = 0
         return (2 * self.Omega * self.k * self.m) * A4
 
     def matrix_A(self):
@@ -71,10 +83,8 @@ class Inertial_Waves_Calculator:
         self.A = np.block([[A1_2], [A3_4]])
 
     def matrix_B1(self):
-        B1 = np.zeros((self.n, self.n), dtype=complex)
-        for i in range(self.n):
-            B1[i, i] = ((self.m ** 2) + (self.k ** 2) * (self.s[i] ** 2)) * 1j
-        return B1
+        diag = ((self.m ** 2) + (self.k ** 2) * (self.s_grid ** 2)) * 1j
+        return np.diag(diag)
     def matrix_B2(self):
         B2 = np.zeros((self.n, self.n), dtype=complex)
         for i in range(self.n):
@@ -84,42 +94,20 @@ class Inertial_Waves_Calculator:
                 B2[i, i] = -2j
         return B2
     def matrix_B3(self):
-        B3 = np.zeros((self.n, self.n))
-        for i in range(self.n):
-            if i == 0:
-                B3[i, i] = -(1 + (self.s[i] / (2 * self.h)))
-                B3[i, i + 1] = self.s[i] / (2 * self.h)
-            elif i == self.n - 1:
-                B3[i, i] = -(1 + (self.s[i] /( 2 * self.h)))
-                B3[i, i - 1] = self.s[i] / (2 * self.h)
-            else:
-                B3[i, i - 1] = -self.s[i] / (2 * self.h)
-                B3[i, i] = -1
-                B3[i, i + 1] = self.s[i] / (2 * self.h)
+        B3 = -np.eye(self.n) + np.diag(self.s_grid) @ self.D1
+        B3[-1, :] = -np.eye(self.n)[-1, :]
         return self.m * B3
     def matrix_B4_1(self):
-        B4_1 = np.zeros((self.n, self.n))
-        for i in range(self.n):
-            if i == self.n - 1:
-                B4_1[i, i] = 1
-            else:
-                B4_1[i, i] = self.s[i] * self.k * (self.m ** 2) + 
-                (self.s[i] ** 2) + (self.k ** 3) + self.k
+        diag = self.s_grid * self.k * (self.m ** 2) + (self.s_grid ** 2) + (
+            self.k ** 3) + self.k
+        B4_1 = np.diag(diag)
+        B4_1[-1, -1] = 1
         return B4_1
     def matrix_B4_2(self):
-        B4_2 = np.zeros((self.n, self.n))
-        for i in range(self.n):
-            if i == 0:
-                B4_2[i, i] = 2 * (self.s[i] ** 2) + self.h * self.s[i]
-                B4_2[i, i + 1] = -4 * (self.s[i] ** 2) + self.h * self.s[i]
-                B4_2[i, i + 2] = 2 * (self.s[i] ** 2)
-            elif i == self.n - 1:
-                B4_2[i, i] = 1
-            else:
-                B4_2[i, i - 1] = 2 * (self.s[i] ** 2) + self.h * self.s[i]
-                B4_2[i, i] = -4 * (self.s[i] ** 2)
-                B4_2[i, i + 1] = 2 * (self.s[i] ** 2) + self.h * self.s[i]
-        return (self.k / (2 * (self.h ** 2))) * B4_2
+        B4_2 = (self.k / 2.0) * (np.diag(self.s_grid ** 2) @ self.D2 +
+                                 np.diag(self.s_grid) @ self.D1)
+        B4_2[-1, -1] = 1
+        return B4_2
 
     def matrix_B(self):
         B1 = self.matrix_B1()
@@ -146,20 +134,16 @@ class Inertial_Waves_Calculator:
         plt.figure(figsize=(10, 8))
         plt.rcParams.update({'font.family': 'arial'})
         plt.subplot(3, 2, 3)
-        vep_Toro = (self.s[:len(self.s)//2]**2)*
-        self.eigenvectors_NS[:len(self.s) // 2, self.index_omega]
-        plt.plot(self.s[:len(self.s)//2], vep_Toro, label="Vep Toroïdal",
-                 color='blue')
+        vep_Toro = (self.s_grid**2) * self.eigenvectors_NS[:self.n, self.index_omega]
+        plt.plot(self.s_grid, vep_Toro, label="Vep Toroïdal", color='blue')
         plt.xlabel('Position $s$')
         plt.ylabel('Amplitude')
         plt.title('Composante Toroïdale')
         plt.grid()
         plt.legend()
         plt.subplot(3, 2, 4)
-        vep_Polo = (self.s[:len(self.s)//2]**2)*
-        self.eigenvectors_NS[len(self.s) // 2:, self.index_omega]
-        plt.plot(self.s[:len(self.s)//2], vep_Polo, label="Vep Poloïdal",
-                 color='green')
+        vep_Polo = (self.s_grid**2) * self.eigenvectors_NS[self.n:, self.index_omega]
+        plt.plot(self.s_grid, vep_Polo, label="Vep Poloïdal", color='green')
         plt.xlabel('Position $s$')
         plt.ylabel('Amplitude')
         plt.title('Composante Toroïdale')
@@ -182,49 +166,47 @@ class Inertial_Waves_Calculator:
         v_phi = []
         v_z = []
 
-        vep_Toro = (self.s[:len(self.s)//2]**2)*
-        self.eigenvectors_NS[:len(self.s) // 2, self.index_omega]
-        vep_Polo = (self.s[:len(self.s)//2]**2)*
-        self.eigenvectors_NS[len(self.s) // 2:, self.index_omega]
+        vep_Toro = (self.s_grid**2) * self.eigenvectors_NS[:self.n, self.index_omega]
+        vep_Polo = (self.s_grid**2) * self.eigenvectors_NS[self.n:, self.index_omega]
 
         for i in range(self.n):
-            if self.s[i] != 0:
+            if self.s_grid[i] != 0:
                 exp_term = np.exp(1j * (self.k * z[i] + self.m * phi[i] +
                                         self.omega * t[i]))
                 if i == 0:
-                    v_s.append((self.s[i] ** 2) * exp_term * 
-                    ((-1 / (self.s[i] ** 2)) * (-self.m ** 2) * vep_Polo[i] - 
+                    v_s.append((self.s_grid[i] ** 2) * exp_term *
+                    ((-1 / (self.s_grid[i] ** 2)) * (-self.m ** 2) * vep_Polo[i] -
                     (-self.k ** 2) * vep_Polo[i]))
-                    v_phi.append((self.s[i] ** 2) * exp_term *
-                    (1j * self.k * vep_Toro[i] + (1j * self.m / self.s[i]) *
-                    (1 / self.h) * (vep_Polo[i + 1] - vep_Polo[i]) - 
-                    (1j * self.m / self.s[i] ** 2) * vep_Polo[i]))
-                    v_z.append(self.s[i] ** 2 * exp_term * 
-                    ((1j / self.s[i]) * (self.k * vep_Polo[i] - 
-                    self.m * vep_Toro[i]) + (1j * self.k / self.h) * 
+                    v_phi.append((self.s_grid[i] ** 2) * exp_term *
+                    (1j * self.k * vep_Toro[i] + (1j * self.m / self.s_grid[i]) *
+                    (1 / self.h) * (vep_Polo[i + 1] - vep_Polo[i]) -
+                    (1j * self.m / self.s_grid[i] ** 2) * vep_Polo[i]))
+                    v_z.append(self.s_grid[i] ** 2 * exp_term *
+                    ((1j / self.s_grid[i]) * (self.k * vep_Polo[i] -
+                    self.m * vep_Toro[i]) + (1j * self.k / self.h) *
                     (vep_Polo[i + 1] - vep_Polo[i])))
                 elif i == self.n - 1:
-                    v_s.append(self.s[i] ** 2 * exp_term * 
-                    ((-1 / (self.s[i] ** 2)) * (-self.m ** 2) * 
+                    v_s.append(self.s_grid[i] ** 2 * exp_term *
+                    ((-1 / (self.s_grid[i] ** 2)) * (-self.m ** 2) *
                     vep_Polo[i] - (-self.k ** 2) * vep_Polo[i]))
-                    v_phi.append(self.s[i] ** 2 * exp_term * 
-                    (1j * self.k * vep_Toro[i] + (1j * self.m / self.s[i]) * 
-                    (1 / self.h) * (vep_Polo[i] - vep_Polo[i - 1]) - 
-                    (1j * self.m / self.s[i] ** 2) * vep_Polo[i]))
-                    v_z.append(self.s[i] ** 2 * exp_term * 
-                    ((1j / self.s[i]) * (self.k * vep_Polo[i] - 
-                                         self.m * vep_Toro[i]) + 
+                    v_phi.append(self.s_grid[i] ** 2 * exp_term *
+                    (1j * self.k * vep_Toro[i] + (1j * self.m / self.s_grid[i]) *
+                    (1 / self.h) * (vep_Polo[i] - vep_Polo[i - 1]) -
+                    (1j * self.m / self.s_grid[i] ** 2) * vep_Polo[i]))
+                    v_z.append(self.s_grid[i] ** 2 * exp_term *
+                    ((1j / self.s_grid[i]) * (self.k * vep_Polo[i] -
+                                         self.m * vep_Toro[i]) +
                     (1j * self.k / self.h) * (vep_Polo[i] - vep_Polo[i - 1])))
                 else:
-                    v_s.append(self.s[i] ** 2 * exp_term * 
-                    ((-1 / (self.s[i] ** 2)) * (-self.m ** 2) * vep_Polo[i] - 
+                    v_s.append(self.s_grid[i] ** 2 * exp_term *
+                    ((-1 / (self.s_grid[i] ** 2)) * (-self.m ** 2) * vep_Polo[i] -
                     (-self.k ** 2) * vep_Polo[i]))
-                    v_phi.append(self.s[i] ** 2 * exp_term * 
-                    (1j * self.k * vep_Toro[i] + (1j * self.m / self.s[i]) * 
-                    (1 / (2 * self.h)) * (vep_Polo[i + 1] - vep_Polo[i - 1]) - 
-                    (1j * self.m / self.s[i] ** 2) * vep_Polo[i]))
-                    v_z.append(self.s[i] ** 2 * exp_term * ((1j / self.s[i]) * 
-                    (self.k * vep_Polo[i] - self.m * vep_Toro[i]) + 
+                    v_phi.append(self.s_grid[i] ** 2 * exp_term *
+                    (1j * self.k * vep_Toro[i] + (1j * self.m / self.s_grid[i]) *
+                    (1 / (2 * self.h)) * (vep_Polo[i + 1] - vep_Polo[i - 1]) -
+                    (1j * self.m / self.s_grid[i] ** 2) * vep_Polo[i]))
+                    v_z.append(self.s_grid[i] ** 2 * exp_term * ((1j / self.s_grid[i]) *
+                    (self.k * vep_Polo[i] - self.m * vep_Toro[i]) +
                     (1j * self.k / (2 * self.h)) * (vep_Polo[i + 1] -
                     vep_Polo[i - 1])))
 
