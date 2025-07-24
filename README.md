@@ -1,19 +1,21 @@
-# Modèle simplifié d’ondes magnétohydrodynamiques dans le noyau terrestre
-Dans ce mémoire, les équations linéaires de l’hydrodynamique et de la magnétohydrodynamique sont développées pour un fluide conducteur en rotation uniforme imprégné d’un champ magnétique constant. Une décomposition toroïdale-poloïdale est apppliquée aux champs solénoïdaux, ce qui nous permet, d’obtenir un système résoluble numériquement. La résolution numérique de ces équations via un solveur d’ondes inertielles, développé dans le cadre de ce mémoire, permet de calculer tous les modes d’oscillations de ces ondes pour le cas hydrodynamique. La base d’un tel solveur a été construite durant cette étude, des améliorations mèneront vers un véritable calculateur d’ondes magnéto-Coriolis applicable à la géophysique et l’astrophysique.
-## Auteur
-Alexandre Nuyt - Université Catholique de Louvain, Faculté des sciences, Ecole de physique
-## Objectifs
-Ce mémoire étant exploratoire, trois objectifs majeurs sont visés :
-- Étudier les fondements de la dynamique des fluides en rotation et de la ma-
-gnétohydrodynamique, dans un contexte géophysique.
-- Développer les équations différentielles des ondes inertielles pour l’hydrody-
-namique et la MHD en décomposition Toroïdale-Poloïdale.
-- Construire la base d'un outil numérique : solveur Hydro + MHD des ondes inertielles,
-pour tout mode m et k, en géométrie cylindrique.
-## Description des codes
-Lors de l'étude, 3 codes principaux ont été écrits :
-- [Analytical_Inertial_waves.py](Analytical_Inertial_waves.py) : Résoud numériquement l'équation transcendante (1.56) qui donne les solutions analytiques des ondes inertielles se propageant dans fluide non-conducteur en rotation pour une géométrie cylindrique. 
-- [Helmoltz_cylindrical.py](Helmoltz_cylindrical.py) : Résoud l'équation de Helmoltz cylindrique, par la méthode des différences finies, afin de s'assurer du fonctionnement de la méthode numérique utilisée pour réaliser les solveurs Hydro et MHD des ondes inertielles.
-- [Toroidal_Poloidal_Inertial_waves.py](Toroidal_Poloidal_Inertial_waves.py): Est la base d'un solveur Hydro + MHD des ondes inertielles, pour tout mode m et k, en géométrie cylindrique.
+# Simplified model of magnetohydrodynamic waves in the Earth's core
+In this thesis, the linear equations of hydrodynamics and magnetohydrodynamics are developed for a uniformly rotating conductive fluid impregnated with a constant magnetic field. A toroidal-poloidal decomposition is applied to the solenoidal fields, allowing us to obtain a numerically solvable system. The numerical solution of these equations using an inertial wave solver, developed as part of this thesis, allows us to calculate all the oscillation modes of these waves for the hydrodynamic case. The basis for such a solver was constructed during this study, and improvements will lead to a true magneto-Coriolis wave calculator applicable to geophysics and astrophysics.
+## Author
+Alexandre Nuyt - Catholic University of Louvain, Faculty of Science, School of Physics
+## Objectives
+As this thesis is exploratory, three major objectives are targeted:
+- To study the fundamentals of rotating fluid dynamics and magnetohydrodynamics
+in a geophysical context.
+- To develop the differential equations of inertial waves for hydrodynamics
+and MHD in toroidal-poloidal decomposition.
+- Build the basis for a numerical tool: Hydro + MHD solver for inertial waves,
+for all m and k modes, in cylindrical geometry.
+## Description of the codes
+During the study, three main codes were written:
+- [Analytical_Inertial_waves.py](Analytical_Inertial_waves.py): Numerically solves the transcendental equation (1.56) which gives the analytical solutions of inertial waves propagating in a rotating non-conductive fluid for a cylindrical geometry. 
+- [Helmoltz_cylindrical.py](Helmoltz_cylindrical.py): Solves the cylindrical Helmholtz equation using the finite difference method to ensure the functionality of the numerical method used to create the Hydro and MHD solvers for inertial waves.
+- [Toroidal_Poloidal_Inertial_waves.py](Toroidal_Poloidal_Inertial_waves.py): Forms the basis of a Hydro + MHD solver for inertial waves, for all modes m and k, in cylindrical geometry.
 ## Conclusion
-Ce travail explore la résolution des ondes magnéto-Coriolis en géométrie cylindrique en s'appuyant sur des bases théoriques en hydrodynamique et magnétohydrodynamique. Un algorithme numérique a été développé pour traiter ce problème, bien que les résultats actuels nécessitent encore des améliorations. En optimisant la discrétisation, cet outil pourra devenir un véritable atout pour l'étude des phénomènes géophysiques et astrophysiques.
+This work explores the resolution of magneto-Coriolis waves in cylindrical geometry based on theoretical foundations in hydrodynamics and magnetohydrodynamics. A numerical algorithm has been developed to address this problem, although the current results still require improvement. By optimising the discretisation, this tool could become a real asset for the study of geophysical and astrophysical phenomena.
+
+-> Although my master's thesis is complete, this **project continues** and progress can be found in the repository ‘**Cylindrical inertial waves**’.
