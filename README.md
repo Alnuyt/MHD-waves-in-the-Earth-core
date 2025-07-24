@@ -18,4 +18,4 @@ During the study, three main codes were written:
 ## Conclusion
 This work explores the resolution of magneto-Coriolis waves in cylindrical geometry based on theoretical foundations in hydrodynamics and magnetohydrodynamics. A numerical algorithm has been developed to address this problem, although the current results still require improvement. By optimising the discretisation, this tool could become a real asset for the study of geophysical and astrophysical phenomena.
 
--> Although my master's thesis is complete, this **project continues** and progress can be found in the repository ‘**Cylindrical inertial waves**’.
+Although my master's thesis is complete, this **project continues** and progress can be found in the repository ‘**Cylindrical inertial waves**’.
